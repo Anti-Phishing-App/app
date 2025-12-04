@@ -49,7 +49,13 @@ import com.example.antiphishingapp.theme.Grayscale900
 import com.example.antiphishingapp.theme.NPSFont
 import com.example.antiphishingapp.theme.Primary100
 import com.example.antiphishingapp.theme.Primary200
+import com.example.antiphishingapp.theme.Primary300
 import com.example.antiphishingapp.theme.Primary900
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 
 
 @Composable
@@ -83,7 +89,7 @@ fun MainScreen(
                 title = "파일 업로드",
                 description = "문서 이미지 캡쳐, 음성 메시지의\n피싱 위험도 확인이 가능합니다.",
                 iconRes = R.drawable.mainscreen01,
-                onClick = { /* No action */ }
+                onClick = { navController.navigate("fileUpload") }
             )
             Spacer(modifier = Modifier.height(25.dp))
 
@@ -180,12 +186,23 @@ fun ActionCard(
     @DrawableRes iconRes: Int,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val cardColor = if (isPressed) Primary900 else Primary200
+    val titleColor = if (isPressed) Primary300 else Primary900
+    val descriptionColor = if (isPressed) Primary300 else Grayscale700
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Primary200),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -199,7 +216,7 @@ fun ActionCard(
                         fontFamily = NPSFont,
                         fontWeight = FontWeight.Bold
                     ),
-                    color = Primary900
+                    color = titleColor
                 )
                 Spacer(Modifier.height(20.dp))
                 Text(
@@ -207,7 +224,7 @@ fun ActionCard(
                     style = AppTypography.bodyMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
-                    color = Grayscale700,
+                    color = descriptionColor,
                     lineHeight = 20.sp
                 )
             }

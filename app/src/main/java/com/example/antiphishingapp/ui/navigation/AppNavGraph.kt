@@ -16,7 +16,8 @@ import com.example.antiphishingapp.ui.main.MainScreen
 import com.example.antiphishingapp.ui.screen.SignUpScreen
 import com.example.antiphishingapp.ui.screen.TitleScreen
 import com.example.antiphishingapp.ui.screen.LoginScreen
-import com.example.antiphishingapp.feature.viewmodel.MainViewModel
+import com.example.antiphishingapp.ui.fileupload.FileUploadScreen
+
 
 @Composable
 fun AppNavGraph(navController: NavHostController, startRoute: String) {
@@ -45,6 +46,11 @@ fun AppNavGraph(navController: NavHostController, startRoute: String) {
                     navController.navigate("analysis")
                 }
             )
+        }
+
+        // ✅ 파일 업로드 화면 (새로 추가)
+        composable("fileUpload") {
+            FileUploadScreen(navController = navController)
         }
 
         // ✅ 회원가입 화면 (새로 추가된 부분)
