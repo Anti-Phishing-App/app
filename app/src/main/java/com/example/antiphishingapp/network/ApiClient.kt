@@ -19,9 +19,11 @@ object ApiClient {
 
     /** 실기기·운영 빌드: PROD_HOST / 에뮬레이터: EMULATOR_* 로 바꿔서 빌드 */
     const val BASE_URL = PROD_HOST
+//    const val BASE_URL = EMULATOR_API
 
     // 음성 녹음 analyze-audio, STT WebSocket — nginx가 /api/* → ai_server(8001) 로 프록시해야 함
     const val AI_BASE_URL = PROD_HOST
+//    const val AI_BASE_URL = EMULATOR_AI
 
     val WS_BASE_URL: String
         get() = when {

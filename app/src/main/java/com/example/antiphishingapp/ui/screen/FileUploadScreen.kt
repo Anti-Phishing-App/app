@@ -66,7 +66,7 @@ fun FileUploadScreen(
     authViewModel: AuthViewModel,
     analysisViewModel: AnalysisViewModel,
     voiceAnalysisViewModel: VoiceAnalysisViewModel,
-    onUploadSuccess: (AnalysisResponse) -> Unit,
+    onUploadSuccess: (AnalysisResponse, Uri?) -> Unit,  // ← Uri? 추가
     onVoiceUploadSuccess: (VoiceUiResult) -> Unit
 ) {
     val userState by authViewModel.user.collectAsState()
@@ -155,11 +155,11 @@ fun FileUploadScreen(
 
             // ── 새로운 위조 판단 로직 ──────────────────────────────────
             if (analysis.forgery.document_detected == false) {
-                // 문서로 판별되지 않은 경우 → 선택 다이얼로그 표시
                 showNotDocumentOverlay = true
             } else {
-                onUploadSuccess(analysis)
+                onUploadSuccess(analysis, lastUploadedUri)  // ← lastUploadedUri 추가
             }
+
 
             analysisViewModel.resetResult()
         }
@@ -281,7 +281,9 @@ fun FileUploadScreen(
                                     Log.d("AI_TEST", "🔄 강제 검사 요청...")
                                     val multipart = uriToMultipart("file", uri, context)
                                     analysisViewModel.analyzeDocumentForce(multipart)
+                                    // ※ 강제 검사 결과는 LaunchedEffect(result)에서 처리됨
                                 }
+
                             }) {
                                 Text("무시하고 검사")
                             }

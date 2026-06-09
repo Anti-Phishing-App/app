@@ -9,9 +9,9 @@
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/sdk" />
+            <option value="$PROJECT_DIR$/../../종설 프론트 백/app" />
+            <option value="$PROJECT_DIR$/../../종설 프론트 백/app/app" />
+            <option value="$PROJECT_DIR$/../../종설 프론트 백/app/sdk" />
           </set>
         </option>
       </GradleProjectSettings>
