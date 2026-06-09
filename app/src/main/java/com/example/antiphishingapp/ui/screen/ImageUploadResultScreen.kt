@@ -42,6 +42,7 @@ import com.example.antiphishingapp.feature.model.AnalysisResponse
 import com.example.antiphishingapp.network.ApiClient
 import com.example.antiphishingapp.theme.*
 import com.example.antiphishingapp.feature.model.SuspiciousItem
+import android.net.Uri
 
 // ── 기존 import (주석처리) ───────────────────────────────────────────
 // import com.example.antiphishingapp.feature.model.StampBox
@@ -49,7 +50,8 @@ import com.example.antiphishingapp.feature.model.SuspiciousItem
 @Composable
 fun ImageUploadResultScreen(
     navController: NavController,
-    analysis: AnalysisResponse
+    analysis: AnalysisResponse,
+    imageUri: Uri? = null           // ← 추가
 ) {
     val scrollState = rememberScrollState()
 
@@ -64,12 +66,14 @@ fun ImageUploadResultScreen(
 
     val scoreColor = calculateScoreColor(forgeryScore)
 
-    val fullImageUrl = ApiClient.AI_BASE_URL.removeSuffix("/") + analysis.url
-    Log.d("IMAGE_URL", "이미지 URL: $fullImageUrl")  // ← 추가
+//    val fullImageUrl = ApiClient.AI_BASE_URL.removeSuffix("/") + analysis.url
+//    Log.d("IMAGE_URL", "이미지 URL: $fullImageUrl")  // ← 추가
+    val imageModel: Any = imageUri
+        ?: (ApiClient.AI_BASE_URL.removeSuffix("/") + (analysis.url ?: ""))
 
 
     var showPopup by remember { mutableStateOf(false) }
-    val painter = rememberAsyncImagePainter(fullImageUrl)
+//    val painter = rememberAsyncImagePainter(fullImageUrl)
     val suspiciousItems = generateSuspiciousItems(analysis)
 
     Scaffold(containerColor = Primary100) { padding ->
@@ -154,7 +158,7 @@ fun ImageUploadResultScreen(
                             .background(Grayscale50)
                     ) {
                         AsyncImage(
-                            model = fullImageUrl,
+                            model = imageModel,    // ← fullImageUrl 대신
                             contentDescription = "Uploaded Image",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit
@@ -217,7 +221,7 @@ fun ImageUploadResultScreen(
              *****************************/
             if (showPopup) {
                 FullscreenImageOverlay(
-                    imageUrl = fullImageUrl,
+                    imageUrl = imageModel.toString(),   // ← fullImageUrl 대신
                     onClose = { showPopup = false }
                 )
             }
@@ -274,11 +278,11 @@ fun calculateScoreColor(score: Int): Color {
     return when {
         ratio <= 0.5f -> {
             val t = ratio / 0.5f
-            lerp(GradientB_Start, GradientB_Mid, t)
+            lerp(GradientB_End, GradientB_Mid, t)
         }
         else -> {
             val t = (ratio - 0.5f) / 0.5f
-            lerp(GradientB_Mid, GradientB_End, t)
+            lerp(GradientB_Mid, GradientB_Start, t)
         }
     }
 }

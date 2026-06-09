@@ -1,5 +1,6 @@
 package com.example.antiphishingapp.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,8 +27,9 @@ fun AppNavGraph(navController: NavHostController, startRoute: String) {
 
     // 이미지 업로드 결과
     val imageUploadResult = remember { mutableStateOf<AnalysisResponse?>(null) }
+    val imageUploadUri    = remember { mutableStateOf<Uri?>(null) }  // ── 추가: 로컬 URI
 
-    // 음성 업로드 결과 (String → VoiceUiResult 로 변경!)
+    // 음성 업로드 결과
     val voiceUploadResult = remember { mutableStateOf<VoiceUiResult?>(null) }
 
     NavHost(
@@ -69,8 +71,10 @@ fun AppNavGraph(navController: NavHostController, startRoute: String) {
                 analysisViewModel = analysisViewModel,
                 voiceAnalysisViewModel = voiceAnalysisViewModel,
 
-                onUploadSuccess = { result ->
+                // ── uri도 함께 받아서 저장 ──────────────────────────────
+                onUploadSuccess = { result, uri ->
                     imageUploadResult.value = result
+                    imageUploadUri.value    = uri
                     navController.navigate("imageUploadResult")
                 },
 
@@ -114,7 +118,8 @@ fun AppNavGraph(navController: NavHostController, startRoute: String) {
             imageUploadResult.value?.let { result ->
                 ImageUploadResultScreen(
                     navController = navController,
-                    analysis = result
+                    analysis = result,
+                    imageUri = imageUploadUri.value  // ── 추가: 로컬 URI 전달
                 )
             }
         }
