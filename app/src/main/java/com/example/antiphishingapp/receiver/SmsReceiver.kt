@@ -95,7 +95,7 @@ class SmsReceiver : BroadcastReceiver() {
                             "✅ Phishing=${result?.phishing_score}, keywords=${result?.keywords_found}, urls=${result?.url_results?.size}"
                         )
 
-                        if (score >= 70) {
+                        if (score >= 50) {
                             val popupIntent = Intent(context, AlertActivity::class.java).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -123,7 +123,13 @@ class SmsReceiver : BroadcastReceiver() {
                         }
 
                     } else {
-                        Log.e("SmsReceiver", "❌ Server error: ${response.code()}")
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(
+                            "SmsReceiver",
+                            "❌ Server error: ${response.code()} / $errorBody"
+                        )
+
+                        //Log.e("SmsReceiver", "❌ Server error: ${response.code()}")
                     }
                 }
 
