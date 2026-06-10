@@ -60,9 +60,33 @@ fun ImageUploadResultScreen(
 
     // ── 새로운 위험도 계산 ────────────────────────────────────────────
     // score가 null인 경우 (document_detected=false 후 강제검사 등) 기본값 50 사용
+//    val forgeryScore = analysis.forgery.score?.let { score ->
+//        (99f - (score + 0.25f) * 196f).coerceIn(1f, 99f).toInt()
+//    } ?: 50
     val forgeryScore = analysis.forgery.score?.let { score ->
-        (99f - (score + 0.25f) * 196f).coerceIn(1f, 99f).toInt()
-    } ?: 50
+        when {
+            // 정상 구간: score > -0.05 → 1% ~ 29%
+            score > -0.05f -> {
+                val t = (0.25f - score).coerceIn(0f, 0.30f) / 0.30f
+                (1f + t * 28f).toInt()
+            }
+
+            // 즉시 위조: score ≤ -0.2 → 99% 고정
+            score <= -0.2f -> 99
+
+            // 위험 전환 구간: -0.05 초과 ~ -0.07 이하 → 30% ~ 50%
+            score > -0.07f -> {
+                val t = (-0.05f - score) / 0.02f
+                (30f + t * 20f).toInt()
+            }
+
+            // 위험 구간: -0.07 이하 ~ -0.2 미만 → 50% ~ 99%
+            else -> {
+                val t = (-0.07f - score) / 0.13f
+                (50f + t * 49f).toInt()
+            }
+        }
+    } ?: 30   // score null (강제분석 등) → 경계값 30% 기본
 
     val scoreColor = calculateScoreColor(forgeryScore)
 
@@ -374,32 +398,32 @@ fun SuspiciousItemsBox(items: List<SuspiciousItem>) {
 fun generateSuspiciousItems(analysis: AnalysisResponse): List<SuspiciousItem> {
     val list = mutableListOf<SuspiciousItem>()
 
-    // ── 크롭 발생 여부 로그 ───────────────────────────────────────────
     Log.d("FORGERY", "✂️ 문서 영역 크롭 발생: ${analysis.forgery.was_cropped}")
 
-    // ── is_forged가 null인 경우 (문서 아님) 처리 ─────────────────────
     if (analysis.forgery.is_forged == null) {
         list.add(SuspiciousItem("문서로 판별되지 않은 이미지입니다."))
         return list
     }
 
-    if (analysis.forgery.is_forged == true) {
-        // 로그캣에 reasons 출력
+    // score가 -0.1보다 크면 백엔드에서 근거가 넘어와도 정상으로 표시
+    val score = analysis.forgery.score
+    val treatAsNormal = score != null && score > -0.1f
+
+    if (analysis.forgery.is_forged == true && !treatAsNormal) {
         Log.d("FORGERY", "🔍 위조 판단 근거 (${analysis.forgery.reasons.size}개):")
         analysis.forgery.reasons.forEachIndexed { index, reason ->
             Log.d("FORGERY", "  ${index + 1}. $reason")
         }
 
-        // 화면 표시
         if (analysis.forgery.reasons.isNotEmpty()) {
             analysis.forgery.reasons.forEach { reason ->
                 list.add(SuspiciousItem(reason))
             }
         } else {
-            list.add(SuspiciousItem("AI 분석 결과 위조 문서로 판정되었습니다. (점수: ${analysis.forgery.score})"))
+            list.add(SuspiciousItem("AI 분석 결과 위조 문서로 판정되었습니다. (점수: $score)"))
         }
     } else {
-        Log.d("FORGERY", "✅ 정상 문서로 판정되었습니다. (점수: ${analysis.forgery.score})")
+        Log.d("FORGERY", "✅ 정상/경계 구간으로 처리됩니다. (점수: $score)")
         list.add(SuspiciousItem("위조 의심 항목이 없습니다."))
     }
 
